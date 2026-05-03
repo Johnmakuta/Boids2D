@@ -1,5 +1,5 @@
 # Boids2D
-A simple 2D boid simulation using boids to demonstate flocking behaviors. 
+A simple 2D boid simulation using boids to demonstate flocking behaviors. It utilized an OpenGL renderer and a CUDA backend for the simulation. 
 
 # Build Instructions
 Simply use the included makefile and run:
@@ -10,5 +10,4 @@ make
 # Controls:
 r reset
 w toggle wrap/bounce at edges
-+/- increase/decrease boid count
 Esc quit
