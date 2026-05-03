@@ -6,4 +6,4 @@
 *.fatbin
 
 *.o
-boids
+boids_cuda
