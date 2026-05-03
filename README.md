@@ -8,6 +8,6 @@ make
 ```
 
 # Controls:
-r reset
-w toggle wrap/bounce at edges
-Esc quit
+- r reset
+- w toggle wrap/bounce at edges
+- Esc quit
