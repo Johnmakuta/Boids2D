@@ -27,14 +27,18 @@ __device__ __forceinline__ float len1(float2 v){ return sqrtf(len2(v)); }
 
 __device__ __forceinline__ float2 normalized(float2 v){
     float l = len1(v);
-    if(l <= 1e-6f) return {0,0};
+    if(l <= 1e-6f) {
+        return {0,0};
+    }
     return v / l;
 }
 
 __device__ __forceinline__ float2 limitMag(float2 v, float maxMag){
     float l2 = len2(v);
     float mm2 = maxMag*maxMag;
-    if(l2 <= mm2) return v;
+    if(l2 <= mm2) {
+        return v;
+    }
     float l = sqrtf(l2);
     return v * (maxMag / (l + 1e-6f));
 }
@@ -55,9 +59,11 @@ __global__ void boidsStepKernel(
     float neighborRad, float sepRad,
     float wAlign, float wCohesion, float wSeparation,
     int wrapEdgesInt
-){
+) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if(i >= N) return;
+    if(i >= N) {
+        return;
+    }
 
     float2 meP = posIn[i];
     float2 meV = velIn[i];
@@ -70,25 +76,35 @@ __global__ void boidsStepKernel(
     float nR2 = neighborRad * neighborRad;
     float sR2 = sepRad * sepRad;
 
-    for(int j=0;j<N;j++){
-        if(j==i) continue;
+    for(int j=0; j<N; j++) {
+        if(j==i) {
+            continue;
+        }
 
         float2 d = posIn[j] - meP;
 
         if(wrapEdgesInt){
-            if(d.x >  W*0.5f) d.x -= W;
-            if(d.x < -W*0.5f) d.x += W;
-            if(d.y >  H*0.5f) d.y -= H;
-            if(d.y < -H*0.5f) d.y += H;
+            if(d.x >  W*0.5f) {
+                d.x -= W;
+            }
+            if(d.x < -W*0.5f) {
+                d.x += W;
+            }
+            if(d.y >  H*0.5f) {
+                d.y -= H;
+            }
+            if(d.y < -H*0.5f) {
+                d.y += H;
+            }
         }
 
         float dist2 = d.x*d.x + d.y*d.y;
-        if(dist2 < nR2){
+        if(dist2 < nR2) {
             sumVel += velIn[j];
             sumPos += (meP + d);
             cnt++;
 
-            if(dist2 < sR2 && dist2 > 1e-6f){
+            if(dist2 < sR2 && dist2 > 1e-6f) {
                 float invd = rsqrtf(dist2);
                 sep += (d * (-invd));
                 cntSep++;
@@ -118,15 +134,35 @@ __global__ void boidsStepKernel(
     float2 newP = meP + newV * dt;
 
     if(wrapEdgesInt){
-        if(newP.x < 0)   newP.x += W;
-        if(newP.x >= W)  newP.x -= W;
-        if(newP.y < 0)   newP.y += H;
-        if(newP.y >= H)  newP.y -= H;
+        if(newP.x < 0) {
+            newP.x += W;
+        }
+        if(newP.x >= W) {
+            newP.x -= W;
+        }
+        if(newP.y < 0) {
+            newP.y += H;
+        }
+        if(newP.y >= H) {
+            newP.y -= H;
+        }
     } else {
-        if(newP.x < 0){ newP.x = 0;        newV.x *= -1; }
-        if(newP.x > W){ newP.x = (float)W; newV.x *= -1; }
-        if(newP.y < 0){ newP.y = 0;        newV.y *= -1; }
-        if(newP.y > H){ newP.y = (float)H; newV.y *= -1; }
+        if(newP.x < 0) { 
+            newP.x = 0;        
+            newV.x *= -1; 
+        }
+        if(newP.x > W) { 
+            newP.x = (float)W; 
+            newV.x *= -1; 
+        }
+        if(newP.y < 0) { 
+            newP.y = 0;        
+            newV.y *= -1; 
+        }
+        if(newP.y > H) { 
+            newP.y = (float)H; 
+            newV.y *= -1; 
+        }
     }
 
     posOut[i] = newP;
@@ -175,8 +211,12 @@ void BoidsCudaSim::shutdown(){
     simDoneEvent=nullptr; simStream=nullptr; copyStream=nullptr;
 
     for(int i=0;i<2;i++){
-        if(h_posPinned[i]) cudaFreeHost(h_posPinned[i]);
-        if(h_velPinned[i]) cudaFreeHost(h_velPinned[i]);
+        if(h_posPinned[i]) {
+            cudaFreeHost(h_posPinned[i]);
+        }
+        if(h_velPinned[i]) {
+            cudaFreeHost(h_velPinned[i]);
+        }
         h_posPinned[i]=h_velPinned[i]=nullptr;
     }
 
@@ -194,7 +234,7 @@ void BoidsCudaSim::resetRandom(unsigned seed){
     std::vector<float2> pos(m_p.N), vel(m_p.N);
     unsigned st = seed ? seed : 1u;
 
-    for(int i=0;i<m_p.N;i++){
+    for(int i=0; i<m_p.N; i++) {
         pos[i] = { frand(st, 0.0f, (float)m_p.W), frand(st, 0.0f, (float)m_p.H) };
         float a = frand(st, 0.0f, 6.2831853f);
         float s = frand(st, 40.0f, m_p.maxSpeed);
@@ -208,7 +248,7 @@ void BoidsCudaSim::resetRandom(unsigned seed){
 
     // also prime pinned buffers so renderer has something immediately
     for(int k=0;k<2;k++){
-        for(int i=0;i<m_p.N;i++){
+        for(int i=0; i<m_p.N; i++) {
             h_posPinned[k][i] = {pos[i].x, pos[i].y};
             h_velPinned[k][i] = {vel[i].x, vel[i].y};
         }
@@ -252,7 +292,9 @@ void BoidsCudaSim::simulateAndStageAsync(float dt){
 }
 
 bool BoidsCudaSim::pollCopyReady(const float2h*& outPos, const float2h*& outVel) const{
-    if(cudaStreamQuery(copyStream) != cudaSuccess) return false;
+    if(cudaStreamQuery(copyStream) != cudaSuccess) {
+        return false;
+    }
     outPos = h_posPinned[hostBufIndex];
     outVel = h_velPinned[hostBufIndex];
     return true;

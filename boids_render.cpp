@@ -36,8 +36,10 @@ static inline void drawOne(const float2h& p, const float2h& v){
 
 void drawBoidsTriangles(const float2h* pos, const float2h* vel, int N){
     glBegin(GL_TRIANGLES);
-    for(int i=0;i<N;i++) drawOne(pos[i], vel[i]);
+    for(int i=0; i<N; i++) {
+        drawOne(pos[i], vel[i]);
+    }
     glEnd();
 }
 
-} // namespace
+} // namespace BoidsRender

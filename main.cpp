@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <vector>
-#include <cstring> // memcpy
+#include <cstring>
 
 #include "boids_sim.hpp"
 #include "boids_render.hpp"
@@ -13,7 +13,7 @@ static int gW = 1000, gH = 700;
 static BoidParams gParams;
 static BoidsCudaSim gSim;
 
-// CPU draw copies (so renderer owns stable data; avoids lifetime issues)
+// CPU draw copies
 static std::vector<float2h> gDrawPos;
 static std::vector<float2h> gDrawVel;
 
@@ -21,7 +21,7 @@ static void display(){
     glClear(GL_COLOR_BUFFER_BIT);
     glColor3f(0.95f, 0.95f, 1.0f);
 
-    if(!gDrawPos.empty()){
+    if(!gDrawPos.empty()) {
         BoidsRender::drawBoidsTriangles(gDrawPos.data(), gDrawVel.data(), (int)gDrawPos.size());
     }
 
@@ -38,16 +38,21 @@ static void reshape(int w, int h){
 
 static void keyboard(unsigned char key, int, int){
     switch(key){
-        case 27: std::exit(0); break;
-        case 'r': gSim.resetRandom((unsigned)std::time(nullptr)); break;
+        case 27: 
+            std::exit(0); 
+            break;
+        case 'r': 
+            gSim.resetRandom((unsigned)std::time(nullptr)); 
+            break;
         case 'w':
             gParams.wrapEdges = !gParams.wrapEdges;
-            // update sim params (simple approach: re-init with new params)
+            // update sim params
             gSim.shutdown();
             gSim.init(gParams);
             gSim.resetRandom((unsigned)std::time(nullptr));
             break;
-        default: break;
+        default: 
+            break;
     }
 }
 
@@ -61,15 +66,15 @@ static void timer(int){
     static float acc = 0.0f;
     acc += frameDt;
 
-    // If copy finished, grab latest staged data into our draw buffers (CPU memcpy)
+    // If copy finished, grab latest staged data into our draw buffers
     const float2h* pPos=nullptr;
     const float2h* pVel=nullptr;
-    if(gSim.pollCopyReady(pPos, pVel)){
+    if(gSim.pollCopyReady(pPos, pVel)) {
         std::memcpy(gDrawPos.data(), pPos, gParams.N*sizeof(float2h));
         std::memcpy(gDrawVel.data(), pVel, gParams.N*sizeof(float2h));
     }
 
-    while(acc >= gParams.dtFixed){
+    while(acc >= gParams.dtFixed) {
         gSim.simulateAndStageAsync(gParams.dtFixed);
         acc -= gParams.dtFixed;
     }
